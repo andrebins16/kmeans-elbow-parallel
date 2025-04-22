@@ -7,12 +7,12 @@
 
 
 typedef struct {
-    double x, y; 
-    int cluster; 
+    double x, y;
+    int cluster;
 } Point;
 
 typedef struct {
-    double x, y;  
+    double x, y;
     int count;    // numero de pontos atribuidos a esse centroide
 } Centroid;
 
@@ -72,10 +72,10 @@ void initialize_centroids(Point* points, Centroid* centroids, int k) {
 void kmeans_sequential(Point* points, Centroid* centroids, int n, int k) {
     for (int iter = 0; iter < MAX_ITER; iter++) {
         int changed = 0;  // verifica se algum ponto mudou
-        
+
         // atribui cada ponto ao centroide mais proximo
         for (int i = 0; i < n; i++) {
-            double min_dist = 1e9; 
+            double min_dist = 1e9;
             int min_index = -1;  // indice do cluster mais proximo
             for (int j = 0; j < k; j++) {
                 double dist = euclidean_distance(points[i], centroids[j]);
@@ -149,7 +149,7 @@ void kmeans_parallel(Point* points, Centroid* centroids, int n, int k, int n_thr
             centroids[j].y = 0;
             centroids[j].count = 0;
         }
-        
+
 
         // abaixo, quebra o calculo dos novos centroides em threads. calcula a soma paralelamente em threads separadas, e depois combina os resultados
 
@@ -162,7 +162,7 @@ void kmeans_parallel(Point* points, Centroid* centroids, int n, int k, int n_thr
             Centroid* thread_centroids = local_temp[tid]; // array de centroides da thread tid
 
             #pragma omp for  // paraleliza o loop que soma as cordenadas dos pontos de cada centroide. cada thread vai ter suas somas parciais, relativas aos pontos que processou
-            for (int i = 0; i < n; i++) { 
+            for (int i = 0; i < n; i++) {
                 int cl = points[i].cluster;
                 thread_centroids[cl].x += points[i].x;
                 thread_centroids[cl].y += points[i].y;
@@ -198,18 +198,18 @@ void run_generic_kmeans(Point* original_points, int n_points, int k, int threads
     Point* points = malloc(sizeof(Point) * n_points);
     Centroid* centroids = malloc(sizeof(Centroid) * k);
 
-    for (int i = 0; i < n_points; i++) points[i] = original_points[i]; 
+    for (int i = 0; i < n_points; i++) points[i] = original_points[i];
 
-    initialize_centroids(points, centroids, k); 
+    initialize_centroids(points, centroids, k);
 
-    double start = omp_get_wtime(); 
+    double start = omp_get_wtime();
 
     if (threads == 1)
         kmeans_sequential(points, centroids, n_points, k);
     else
         kmeans_parallel(points, centroids, n_points, k, threads);
 
-    double end = omp_get_wtime(); 
+    double end = omp_get_wtime();
     double elapsed = end - start;
 
     // calcula inercia
@@ -226,8 +226,8 @@ void run_generic_kmeans(Point* original_points, int n_points, int k, int threads
     // salva no arquivo
     save_results_to_file(points, centroids, n_points, k, threads, elapsed, inertia, tipo);
 
-    free(points); 
-    free(centroids); 
+    free(points);
+    free(centroids);
 }
 
 
@@ -236,7 +236,7 @@ void run_strong_scalability(int n_points, int k) {
     printf(">>> ESCALABILIDADE FORTE <<<\n");
 
     Point* base_points = malloc(sizeof(Point) * n_points);
-    generate_points(base_points, n_points); 
+    generate_points(base_points, n_points);
 
     // roda o kmeans com diferentes numeros de threads
     run_generic_kmeans(base_points, n_points, k, 1,"forte");
@@ -266,13 +266,13 @@ void run_weak_scalability(int base_points_per_thread, int k) {
         }
         run_generic_kmeans(points, total_points, k, threads,"fraca");  // paralelo com n de threads atual
         printf("\n");
-        free(points); 
+        free(points);
     }
 }
 
 int main() {
-    int n = 1000000;
-    int k = 4;     
+    int n = 3000000;
+    int k = 4;
 
     run_strong_scalability(n, k);
     printf("\n");
